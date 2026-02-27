@@ -1,0 +1,18 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio Code settings
+.vscode/
+
+# User-specific files
+*.user
+*.suo
+
+# Logs
+*.log
+
+# Environment / Secrets
+# Se ignoran appsettings.json para no subir nuestras claves secretas
+appsettings.json
+
