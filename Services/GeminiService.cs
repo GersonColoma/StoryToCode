@@ -27,28 +27,28 @@ public class GeminiService : IGeminiService
             _logger.LogInformation("Enviando solicitud a Gemini API...");
 
             var prompt = $@"
-Eres un asistente experto en generar código C# de alta calidad.
+Eres un asistente experto en generar código de alta calidad. Tu tarea es analizar la siguiente User Story de Azure DevOps y generar el código necesario para implementarla.
 
-Basándote en la siguiente User Story de Azure DevOps, genera las clases y métodos necesarios en C# para implementar la funcionalidad descrita.
+**Contexto del Proyecto:**
+- El código generado debe ser para una aplicación de tipo: **[Página web estática]**
+- El lenguaje de programación y framework debe ser: **[.NET 8]**
 
-Título: {title}
+**User Story:**
+- **Título:** {title}
+- **Descripción:** {description}
+- **Criterios de Aceptación:** {acceptanceCriteria}
 
-Descripción:
-{description}
+**Instrucciones Específicas:**
+1.  Genera el código completo para todos los archivos necesarios (por ejemplo, archivos de proyecto, código fuente, archivos de configuración, HTML, CSS, etc.).
+2.  Para cada archivo, utiliza el siguiente formato estricto:
 
-Criterios de Aceptación:
-{acceptanceCriteria}
+### archivo: ruta/del/archivo (ej: MiProyecto.csproj, Program.cs, wwwroot/index.html)
 
-Requisitos:
-- Genera código C# moderno ( .NET 8+).
-- Incluye namespaces apropiados.
-- Si es una aplicación de consola, incluye el método Main.
-- Si necesita persistencia, usa Entity Framework Core o simplemente clases en memoria.
-- El código debe ser autocontenido y compilable.
-- No incluyas explicaciones extensas, solo el código.
-- El nombre de la clase principal debe derivarse del título.
+3.  Asegúrate de que el código sigue las mejores prácticas del lenguaje y framework elegidos.
+4.  No incluyas explicaciones adicionales fuera de estos bloques. Si necesitas hacer alguna aclaración, usa comentarios dentro del código.
+5.  El nombre principal del proyecto o archivo debe derivarse del título de la User Story.
 
-Código generado:
+**Código generado:**
 ";
 
             var requestBody = new

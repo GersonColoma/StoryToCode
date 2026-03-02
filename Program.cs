@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StoryToCode.Models;
 using StoryToCode.Services;
+using System.Text.RegularExpressions;
 
 namespace StoryToCode;
 
@@ -93,27 +94,53 @@ class Program
             });
 
     static async Task SaveCodeToFile(string title, string code, string outputDir, ILogger logger)
+{
+    try
     {
-        try
+        // Crear un nombre de carpeta seguro a partir del título
+        string safeTitle = string.Join("_", title.Split(Path.GetInvalidFileNameChars()));
+        string projectDir = Path.Combine(outputDir, safeTitle);
+        Directory.CreateDirectory(projectDir);
+
+        logger.LogInformation("Procesando respuesta de Gemini para crear múltiples archivos en {ProjectDir}", projectDir);
+
+        // Expresión regular para encontrar los bloques: ### archivo: ruta/al/archivo luego el contenido entre ```
+        var regex = new Regex(@"### archivo: (.*?)\r?\n```(?:\w*)\r?\n(.*?)\r?\n```", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+        var matches = regex.Matches(code);
+
+        if (matches.Count == 0)
         {
-            Directory.CreateDirectory(outputDir);
-            var safeTitle = string.Join("_", title.Split(Path.GetInvalidFileNameChars()));
-            var fileName = $"{safeTitle}.cs";
-            var filePath = Path.Combine(outputDir, fileName);
-
-            var header = $@"// Generado el {DateTime.Now:yyyy-MM-dd HH:mm:ss}
-// Basado en User Story: {title}
-// Código generado por IA (Gemini)
-
-";
-
-            await File.WriteAllTextAsync(filePath, header + code);
-            logger.LogInformation("Archivo guardado en: {FilePath}", filePath);
+            // Si no encuentra bloques, guarda todo en un solo archivo como antes
+            logger.LogWarning("No se encontraron bloques de archivos en la respuesta. Guardando como un solo archivo.");
+            string fallbackPath = Path.Combine(projectDir, $"{safeTitle}.txt");
+            await File.WriteAllTextAsync(fallbackPath, code);
+            logger.LogInformation("Archivo único guardado en: {FilePath}", fallbackPath);
+            return;
         }
-        catch (Exception ex)
+
+        foreach (Match match in matches)
         {
-            logger.LogError(ex, "Error al guardar el archivo");
-            throw;
+            string relativePath = match.Groups[1].Value.Trim();
+            string content = match.Groups[2].Value.Trim();
+
+            // Asegurar que la ruta relativa no tenga caracteres inválidos
+            string fullPath = Path.Combine(projectDir, relativePath);
+            string directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            await File.WriteAllTextAsync(fullPath, content);
+            logger.LogInformation("Archivo creado: {FilePath}", fullPath);
         }
+
+        logger.LogInformation("Proyecto generado exitosamente en {ProjectDir}", projectDir);
     }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error al guardar los archivos del proyecto");
+        throw;
+    }
+}
 }

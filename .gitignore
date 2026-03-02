@@ -16,3 +16,10 @@ obj/
 # Se ignoran appsettings.json para no subir nuestras claves secretas
 appsettings.json
 
+#GitHub's Token
+tokeStorytoCode.txt
+
+#Generated projects
+GeneratedCode/
+EOF
+
